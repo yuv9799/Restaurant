@@ -22,6 +22,16 @@ const dishes = [
   { _id: '4', name: 'Chicken Biryani', description: 'Aromatic basmati rice with chicken', price: 399, category: 'rice-biryani', isVeg: false, isBestSeller: true },
   { _id: '5', name: 'Gulab Jamun', description: 'Milk dumplings in rose syrup', price: 149, category: 'desserts', isVeg: true },
   { _id: '6', name: 'Paneer Tikka', description: 'Grilled cottage cheese in spices', price: 349, category: 'starters', isVeg: true, isChefSpecial: true },
+  { _id: '7', name: 'Chicken Tikka', description: 'Char-grilled chicken marinated in yogurt and spices', price: 399, category: 'starters', isVeg: false, isBestSeller: true },
+  { _id: '8', name: 'Aloo Paratha', description: 'Stuffed wheat flatbread with spiced potatoes', price: 79, category: 'breads', isVeg: true },
+  { _id: '9', name: 'Veg Pulao', description: 'Fragrant rice with mixed vegetables', price: 249, category: 'rice-biryani', isVeg: true },
+  { _id: '10', name: 'Mutton Rogan Josh', description: 'Tender lamb in aromatic Kashmiri spices', price: 549, category: 'mains', isVeg: false, isChefSpecial: true },
+  { _id: '11', name: 'Shahi Paneer', description: 'Cottage cheese in rich cashew-cream gravy', price: 399, category: 'mains', isVeg: true },
+  { _id: '12', name: 'Fish Curry', description: 'Coastal-style fish in coconut-tamarind gravy', price: 449, category: 'mains', isVeg: false },
+  { _id: '13', name: 'Chole Bhature', description: 'Spiced chickpeas with fluffy fried bread', price: 299, category: 'mains', isVeg: true, isBestSeller: true },
+  { _id: '14', name: 'Rasmalai', description: 'Soft paneer discs in saffron milk', price: 179, category: 'desserts', isVeg: true },
+  { _id: '15', name: 'Kheer', description: 'Traditional rice pudding with nuts', price: 149, category: 'desserts', isVeg: true },
+  { _id: '16', name: 'Tandoori Roti', description: 'Clay oven baked whole wheat bread', price: 45, category: 'breads', isVeg: true },
 ];
 
 export default function MenuPage() {
