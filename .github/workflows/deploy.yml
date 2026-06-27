@@ -6,16 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,45 +18,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: |
           cd frontend
           npm install --legacy-peer-deps
-        continue-on-error: false
 
-      - name: Build frontend
+      - name: Build
         run: |
           cd frontend
-          npm run build 2>&1 | tee build.log
+          npm run build
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Check build output
-        run: |
-          ls -la frontend/out/ || echo "No out directory"
-          test -d frontend/out && echo "Build successful" || (echo "Build failed - no out directory" && exit 1)
-
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./frontend/out
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/out
+          destination_dir: .
+          enable_jekyll: false
+          keep_files: false
+          force: true
