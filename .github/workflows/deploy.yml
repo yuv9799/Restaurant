@@ -32,13 +32,20 @@ jobs:
         run: |
           cd frontend
           npm install --legacy-peer-deps
+        continue-on-error: false
 
       - name: Build frontend
         run: |
           cd frontend
-          npm run build
+          npm run build 2>&1 | tee build.log
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Check build output
+        run: |
+          ls -la frontend/out/ || echo "No out directory"
+          test -d frontend/out && echo "Build successful" || (echo "Build failed - no out directory" && exit 1)
 
       - name: Setup Pages
         id: pages
