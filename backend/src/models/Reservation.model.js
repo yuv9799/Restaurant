@@ -52,6 +52,23 @@ const reservationSchema = new mongoose.Schema({
   },
   tableNumber: {
     type: Number
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['card', 'upi', 'net-banking', 'cash'],
+    default: 'card'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'failed', 'refunded'],
+    default: 'pending'
+  },
+  transactionId: {
+    type: String
+  },
+  amount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

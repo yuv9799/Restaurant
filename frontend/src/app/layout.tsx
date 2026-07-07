@@ -17,9 +17,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
-        {/* EmailJS SDK for booking email notifications */}
+        {/* Razorpay checkout SDK */}
         <Script
-          src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="afterInteractive"
         />
       </body>

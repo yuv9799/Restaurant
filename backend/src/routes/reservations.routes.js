@@ -2,13 +2,27 @@ const express = require('express');
 const router = express.Router();
 const Reservation = require('../models/Reservation.model.js');
 const Table = require('../models/Table.model.js');
+const Payment = require('../models/Payment.model.js');
 const sendEmail = require('../utils/sendEmail.js');
 const { authenticate, requireAdmin } = require('../middleware/auth.middleware.js');
+
+// Simulated payment gateway
+function processPayment(amount, method) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        transactionId: 'PRN' + Date.now().toString(36).toUpperCase(),
+        gatewayResponse: { status: 'completed', amount, method }
+      });
+    }, 1000);
+  });
+}
 
 // POST /api/v1/reservations — Create reservation
 router.post('/', async (req, res) => {
   try {
-    const { name, email, phone, date, time, numberOfPeople, seatingPreference, specialRequests } = req.body;
+    const { name, email, phone, date, time, numberOfPeople, seatingPreference, specialRequests, paymentMethod } = req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !date || !time || !numberOfPeople) {
@@ -29,10 +43,33 @@ router.post('/', async (req, res) => {
     const reservation = new Reservation({
       name, email, phone, date, time, numberOfPeople,
       seatingPreference: seatingPreference || 'indoor',
-      specialRequests: specialRequests || ''
+      specialRequests: specialRequests || '',
+      paymentMethod: paymentMethod || 'card',
+      paymentStatus: 'pending',
+      amount: 0
     });
 
     await reservation.save();
+
+    // Process payment
+    const paymentResult = await processPayment(reservation._id.toString().length, paymentMethod || 'card');
+
+    if (paymentResult.success) {
+      reservation.paymentStatus = 'completed';
+      reservation.transactionId = paymentResult.transactionId;
+      await reservation.save();
+
+      const payment = new Payment({
+        orderId: reservation._id,
+        amount: 0,
+        method: paymentMethod || 'card',
+        status: 'completed',
+        transactionId: paymentResult.transactionId,
+        gatewayResponse: paymentResult.gatewayResponse,
+        paidAt: new Date()
+      });
+      await payment.save();
+    }
 
     // Also notify restaurant
     await sendEmail({
@@ -56,6 +93,7 @@ router.post('/', async (req, res) => {
     });
 
     // Send confirmation to guest
+    const methodLabels = { card: 'Credit/Debit Card', upi: 'UPI', 'net-banking': 'Net Banking', cash: 'Cash' };
     await sendEmail({
       to: email,
       subject: 'Reservation Confirmed — ReNorth',
@@ -70,6 +108,10 @@ router.post('/', async (req, res) => {
             <p><strong>Guests:</strong> ${numberOfPeople}</p>
             <p><strong>Seating:</strong> ${seatingPreference}</p>
             ${specialRequests ? `<p><strong>Special Requests:</strong> ${specialRequests}</p>` : ''}
+            <hr style="border: 1px solid #E8E1D5; margin: 16px 0;" />
+            <p><strong>Payment Method:</strong> ${methodLabels[paymentMethod] || 'Card'}</p>
+            <p><strong>Payment Status:</strong> ${reservation.paymentStatus === 'completed' ? '✅ Paid' : 'Pending'}</p>
+            ${reservation.transactionId ? `<p><strong>Transaction ID:</strong> ${reservation.transactionId}</p>` : ''}
           </div>
           <p style="color: #6B6157;">We look forward to serving you!</p>
           <hr style="border: 1px solid #E8E1D5;" />
@@ -78,7 +120,15 @@ router.post('/', async (req, res) => {
       `
     });
 
-    res.status(201).json({ reservation, message: 'Reservation created successfully' });
+    res.status(201).json({
+      reservation,
+      payment: {
+        transactionId: reservation.transactionId,
+        method: reservation.paymentMethod,
+        status: reservation.paymentStatus
+      },
+      message: 'Reservation created successfully'
+    });
   } catch (error) {
     console.error('Create reservation error:', error);
     res.status(500).json({ message: 'Server error' });

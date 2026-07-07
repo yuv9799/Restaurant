@@ -73,6 +73,7 @@ export const contactApi = {
 // Orders
 export const ordersApi = {
   create: (data: any) => api.post('/orders', data),
+  verifyPayment: (data: any) => api.post('/orders/verify-payment', data),
   getAll: () => api.get('/orders'),
   getById: (id: string) => api.get(`/orders/${id}`),
 };
