@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Search, Plus, Minus, X, ShoppingCart } from 'lucide-react';
 import MenuCard from '@/components/MenuCard';
 import { menuApi } from '@/lib/api';
@@ -182,7 +183,7 @@ export default function MenuPage() {
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Subtotal</span><span className="font-semibold">₹{cartTotal}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-text-muted">Tax (5%)</span><span className="font-semibold">₹{Math.round(cartTotal * 0.05)}</span></div>
                 <div className="flex justify-between font-bold text-primary border-t border-border pt-3"><span>Total</span><span>₹{cartTotal + Math.round(cartTotal * 0.05)}</span></div>
-                <a href="/reservations?cart=1" className="btn-primary w-full justify-center"><ShoppingCart className="w-4 h-4" /> Proceed to Checkout</a>
+                <Link href="/reservations?cart=1" className="btn-primary w-full justify-center"><ShoppingCart className="w-4 h-4" /> Proceed to Checkout</Link>
               </div>
             )}
           </motion.div>
