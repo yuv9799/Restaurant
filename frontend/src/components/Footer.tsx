@@ -1,93 +1,75 @@
 'use client';
 
 import Link from 'next/link';
-import { UtensilsCrossed, Phone, Mail, MapPin, Clock, Globe, Camera, Music } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#2B2B2B] text-white">
-      <div className="container-custom py-8 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+    <footer className="border-t border-border" style={{ background: '#1A1A1A' }}>
+      <div className="container-custom py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-3 md:mb-4">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-lg flex items-center justify-center">
-                <UtensilsCrossed className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--color-primary)' }}>
+                <span className="text-white font-bold text-sm font-heading">R</span>
               </div>
-              <span className="font-heading text-xl md:text-2xl font-bold text-white">ReNorth</span>
+              <span className="font-heading text-xl font-bold text-white">ReNorth</span>
             </Link>
-            <p className="text-gray-400 text-xs md:text-sm mb-4 md:mb-6">Where the Mountains Meet the Masala</p>
-            <div className="flex gap-2 md:gap-3">
-              <a href="#" className="w-8 h-8 md:w-10 md:h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-colors" aria-label="Instagram">
-                <Camera className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </a>
-              <a href="#" className="w-8 h-8 md:w-10 md:h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-colors" aria-label="Facebook">
-                <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </a>
-              <a href="#" className="w-8 h-8 md:w-10 md:h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-colors" aria-label="Youtube">
-                <Music className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </a>
+            <p className="text-gray-500 text-sm leading-relaxed">Where the Mountains Meet the Masala</p>
+          </div>
+
+          <div>
+            <h4 className="text-white text-sm font-semibold mb-5">Navigation</h4>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { href: '/menu', label: 'Menu' },
+                { href: '/drinks', label: 'Drinks' },
+                { href: '/reservations', label: 'Reservations' },
+                { href: '/private-dining', label: 'Private Dining' },
+                { href: '/sundays', label: 'Sundays at Our Table' },
+                { href: '/contact', label: 'Contact' },
+              ].map(link => (
+                <Link key={link.href} href={link.href} className="text-gray-500 hover:text-white transition-colors text-sm">{link.label}</Link>
+              ))}
             </div>
           </div>
 
           <div>
-            <h4 className="text-white font-heading text-base md:text-xl mb-4 md:mb-6">Quick Links</h4>
-            <div className="flex flex-col gap-2 md:gap-3">
-              <Link href="/menu" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Menu</Link>
-              <Link href="/drinks" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Drinks</Link>
-              <Link href="/reservations" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Reservations</Link>
-              <Link href="/private-dining" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Private Dining</Link>
-              <Link href="/sundays" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Sundays at Our Table</Link>
-              <Link href="/contact" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">Contact</Link>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-white font-heading text-base md:text-xl mb-4 md:mb-6">
-              <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 inline mr-1.5" />
-              Opening Hours
+            <h4 className="text-white text-sm font-semibold mb-5">
+              <Clock className="w-3.5 h-3.5 inline mr-1.5" />
+              Hours
             </h4>
-            <div className="flex flex-col gap-2 md:gap-3 text-xs md:text-sm">
-              <div className="flex justify-between text-gray-400">
-                <span>Mon - Fri</span>
-                <span>11:00 AM - 10:30 PM</span>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span>Saturday</span>
-                <span>10:00 AM - 11:00 PM</span>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span>Sunday</span>
-                <span>10:00 AM - 10:00 PM</span>
-              </div>
+            <div className="flex flex-col gap-2.5 text-sm">
+              <div className="flex justify-between text-gray-500"><span>Mon - Fri</span><span>11:00 AM - 10:30 PM</span></div>
+              <div className="flex justify-between text-gray-500"><span>Saturday</span><span>10:00 AM - 11:00 PM</span></div>
+              <div className="flex justify-between text-gray-500"><span>Sunday</span><span>10:00 AM - 10:00 PM</span></div>
             </div>
           </div>
 
           <div>
-            <h4 className="text-white font-heading text-base md:text-xl mb-4 md:mb-6">Get in Touch</h4>
-            <div className="flex flex-col gap-3 md:gap-4 text-xs md:text-sm">
-              <a href="tel:+911234567890" className="flex items-center gap-2 md:gap-3 text-gray-400 hover:text-white transition-colors">
-                <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
-                +91 12345 67890
+            <h4 className="text-white text-sm font-semibold mb-5">Contact</h4>
+            <div className="flex flex-col gap-3.5 text-sm">
+              <a href="tel:+911234567890" className="flex items-center gap-3 text-gray-500 hover:text-white transition-colors">
+                <Phone className="w-3.5 h-3.5 text-accent" /> +91 12345 67890
               </a>
-              <a href="mailto:hello@renorth.com" className="flex items-center gap-2 md:gap-3 text-gray-400 hover:text-white transition-colors">
-                <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
-                hello@renorth.com
+              <a href="mailto:hello@renorth.com" className="flex items-center gap-3 text-gray-500 hover:text-white transition-colors">
+                <Mail className="w-3.5 h-3.5 text-accent" /> hello@renorth.com
               </a>
-              <div className="flex items-start gap-2 md:gap-3 text-gray-400">
-                <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent mt-0.5" />
-                <span>123, Rajpath Club Road,<br />Ahmedabad, Gujarat 380054</span>
+              <div className="flex items-start gap-3 text-gray-500">
+                <MapPin className="w-3.5 h-3.5 text-accent mt-0.5" />
+                <span>123, Rajpath Club Road, Ahmedabad, Gujarat 380054</span>
               </div>
             </div>
           </div>
         </div>
 
-        <hr className="border-gray-800 my-6 md:my-8" />
+        <hr className="border-gray-800 my-8" />
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-500">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-sm text-gray-600">
           <p>&copy; {new Date().getFullYear()} ReNorth. All rights reserved.</p>
-          <div className="flex gap-4 md:gap-6">
-            <Link href="/" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/" className="hover:text-white transition-colors">Terms of Service</Link>
+          <div className="flex gap-6">
+            <Link href="/" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/" className="hover:text-white transition-colors">Terms</Link>
           </div>
         </div>
       </div>

@@ -11,43 +11,28 @@ interface MenuCardProps {
   isBestSeller?: boolean;
 }
 
-export default function MenuCard({
-  name,
-  description,
-  price,
-  isVeg,
-  isChefSpecial,
-  isBestSeller,
-}: MenuCardProps) {
+export default function MenuCard({ name, description, price, isVeg, isChefSpecial, isBestSeller }: MenuCardProps) {
   return (
     <motion.div
       className="card overflow-hidden"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      whileHover={{ y: -6, boxShadow: '0 16px 32px rgba(96,38,40,0.12)' }}
+      whileHover={{ y: -4 }}
     >
-      {/* Badges row */}
-      <div className="px-6 pt-5 flex gap-2">
-        <span className={isVeg ? 'veg-dot' : 'nonveg-dot'} />
-        {isChefSpecial && <span className="badge-chef">Chef's Special</span>}
-        {isBestSeller && <span className="badge-best-seller">Best Seller</span>}
-      </div>
-
-      {/* Dish info — no image, clean card layout */}
-      <div className="p-6 pt-4">
-        {/* Dish name — large, bold */}
-        <h4 className="text-xl font-bold mb-2">{name}</h4>
-
-        {/* Description — ingredients / cooking process, 2-3 lines */}
-        <p className="text-text-muted text-sm leading-relaxed mb-4 line-clamp-3">
-          {description}
-        </p>
-
-        {/* Price at the bottom */}
-        <div className="flex items-center justify-between">
-          <span className="text-primary font-bold text-xl">₹{price}</span>
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={isVeg ? 'veg-dot' : 'nonveg-dot'} />
+              {isChefSpecial && <span className="badge badge-chef">Chef&apos;s Special</span>}
+              {isBestSeller && <span className="badge badge-best-seller">Best Seller</span>}
+            </div>
+            <h4 className="text-base font-semibold truncate">{name}</h4>
+          </div>
+          <span className="text-primary font-bold text-lg whitespace-nowrap">₹{price}</span>
         </div>
+        <p className="text-text-muted text-sm leading-relaxed line-clamp-2">{description}</p>
       </div>
     </motion.div>
   );

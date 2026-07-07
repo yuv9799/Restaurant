@@ -12,12 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col bg-background">
+    <html lang="en">
+      <body className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
-        {/* Razorpay checkout SDK */}
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="afterInteractive"
