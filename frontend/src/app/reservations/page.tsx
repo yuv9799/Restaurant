@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, CheckCircle, Loader2, CreditCard, ShoppingCart, ChevronLeft, Users } from 'lucide-react';
+import { Clock, CheckCircle, Loader2, CreditCard, ShoppingCart, ChevronLeft } from 'lucide-react';
 import { reservationApi, ordersApi } from '@/lib/api';
 
 declare global { interface Window { Razorpay: any } }
