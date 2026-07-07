@@ -70,4 +70,11 @@ export const contactApi = {
     api.post('/contact', data),
 };
 
+// Orders
+export const ordersApi = {
+  create: (data: any) => api.post('/orders', data),
+  getAll: () => api.get('/orders'),
+  getById: (id: string) => api.get(`/orders/${id}`),
+};
+
 export default api;

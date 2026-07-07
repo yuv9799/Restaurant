@@ -14,6 +14,7 @@ const privateDiningRoutes = require('./routes/privateDining.routes.js');
 const awardRoutes = require('./routes/awards.routes.js');
 const reviewRoutes = require('./routes/reviews.routes.js');
 const contactRoutes = require('./routes/contact.routes.js');
+const orderRoutes = require('./routes/orders.routes.js');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/private-dining', privateDiningRoutes);
 app.use('/api/v1/awards', awardRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

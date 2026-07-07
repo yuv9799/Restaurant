@@ -245,6 +245,15 @@ a {
   text-decoration: none;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

@@ -22,6 +22,8 @@ const collections = {
   tables: Datastore.create({ filename: path.join(DATA_DIR, 'tables.db'), autoload: true }),
   awards: Datastore.create({ filename: path.join(DATA_DIR, 'awards.db'), autoload: true }),
   reviews: Datastore.create({ filename: path.join(DATA_DIR, 'reviews.db'), autoload: true }),
+  orders: Datastore.create({ filename: path.join(DATA_DIR, 'orders.db'), autoload: true }),
+  payments: Datastore.create({ filename: path.join(DATA_DIR, 'payments.db'), autoload: true }),
 };
 
 /**
@@ -137,6 +139,8 @@ const Reservation = createModel('Reservation', collections.reservations);
 const Table = createModel('Table', collections.tables);
 const Award = createModel('Award', collections.awards);
 const Review = createModel('Review', collections.reviews);
+const Order = createModel('Order', collections.orders);
+const Payment = createModel('Payment', collections.payments);
 
 // Seed data
 const seedData = require('./seedData.js');
@@ -178,7 +182,7 @@ async function seedDatabase() {
 }
 
 module.exports = {
-  Dish, Drink, User, Reservation, Table, Award, Review,
+  Dish, Drink, User, Reservation, Table, Award, Review, Order, Payment,
   collections,
   seedDatabase
 };

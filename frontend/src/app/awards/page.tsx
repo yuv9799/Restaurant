@@ -12,9 +12,7 @@ export default function AwardsPage() {
   const [loading, setLoading] = useState(true);
   const [activePlatform, setActivePlatform] = useState('all');
 
-  useEffect(() => {
-    fetchData();
-  }, [activePlatform]);
+  useEffect(() => { fetchData(); }, [activePlatform]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -37,56 +35,53 @@ export default function AwardsPage() {
 
   return (
     <div className="pt-20">
-      <section className="bg-gradient-to-br from-primary to-primary/90 py-16">
+      <section className="bg-gradient-to-br from-primary to-primary/90 py-12 md:py-16">
         <div className="container-custom text-center">
-          <motion.h1 className="text-white mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.h1 className="text-white mb-4 text-3xl md:text-5xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             Awards & Feedback
           </motion.h1>
-          <motion.p className="text-white/80 max-w-2xl mx-auto" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <motion.p className="text-white/80 max-w-2xl mx-auto text-sm md:text-base" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             Recognition from the finest platforms and love from our guests
           </motion.p>
         </div>
       </section>
 
-      {/* Rating Stats */}
       {stats && (
-        <section className="section-padding bg-white">
+        <section className="py-8 md:py-16 bg-white">
           <div className="container-custom">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-3xl mx-auto">
               <div className="text-center">
-                <div className="text-5xl font-bold text-accent mb-2">{stats.averageRating.toFixed(1)}</div>
-                <div className="flex justify-center gap-1 mb-2">
+                <div className="text-3xl md:text-5xl font-bold text-accent mb-1 md:mb-2">{stats.averageRating.toFixed(1)}</div>
+                <div className="flex justify-center gap-0.5 md:gap-1 mb-1 md:mb-2">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-5 h-5 ${i < Math.round(stats.averageRating) ? 'fill-accent text-accent' : 'text-border'}`} />
+                    <Star key={i} className={`w-3 h-3 md:w-5 md:h-5 ${i < Math.round(stats.averageRating) ? 'fill-accent text-accent' : 'text-border'}`} />
                   ))}
                 </div>
-                <p className="text-text-muted text-sm">Average Rating</p>
+                <p className="text-text-muted text-[10px] md:text-sm">Avg Rating</p>
               </div>
               <div className="text-center">
-                <div className="text-5xl font-bold text-primary mb-2">{stats.totalReviews}</div>
-                <p className="text-text-muted text-sm">Total Reviews</p>
+                <div className="text-3xl md:text-5xl font-bold text-primary mb-1 md:mb-2">{stats.totalReviews}</div>
+                <p className="text-text-muted text-[10px] md:text-sm">Total Reviews</p>
               </div>
               <div className="text-center">
-                <div className="text-5xl font-bold text-success mb-2">{awards.length}</div>
-                <p className="text-text-muted text-sm">Awards Won</p>
+                <div className="text-3xl md:text-5xl font-bold text-success mb-1 md:mb-2">{awards.length}</div>
+                <p className="text-text-muted text-[10px] md:text-sm">Awards Won</p>
               </div>
             </div>
-
-            {/* Rating Distribution */}
             {stats.distribution && (
-              <div className="max-w-md mx-auto mt-12 space-y-2">
+              <div className="max-w-md mx-auto mt-8 md:mt-12 space-y-1.5 md:space-y-2 px-4">
                 {[5, 4, 3, 2, 1].map(rating => {
                   const item = stats.distribution.find((d: any) => d._id === rating);
                   const count = item?.count || 0;
                   const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
                   return (
-                    <div key={rating} className="flex items-center gap-3">
-                      <span className="text-sm w-4">{rating}</span>
-                      <Star className="w-4 h-4 text-accent fill-accent" />
-                      <div className="flex-1 h-3 bg-background rounded-full overflow-hidden">
+                    <div key={rating} className="flex items-center gap-2 md:gap-3">
+                      <span className="text-xs md:text-sm w-3 md:w-4">{rating}</span>
+                      <Star className="w-3 h-3 md:w-4 md:h-4 text-accent fill-accent" />
+                      <div className="flex-1 h-2 md:h-3 bg-background rounded-full overflow-hidden">
                         <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${percentage}%` }} />
                       </div>
-                      <span className="text-sm text-text-muted w-8 text-right">{count}</span>
+                      <span className="text-xs md:text-sm text-text-muted w-6 md:w-8 text-right">{count}</span>
                     </div>
                   );
                 })}
@@ -96,94 +91,76 @@ export default function AwardsPage() {
         </section>
       )}
 
-      {/* Awards Grid */}
-      <section className="section-padding">
+      <section className="py-8 md:py-16">
         <div className="container-custom">
-          <div className="section-title">
-            <h2>Our Awards</h2>
-            <p>Recognition that drives us to excel</p>
+          <div className="section-title mb-6 md:mb-12">
+            <h2 className="text-2xl md:text-4xl">Our Awards</h2>
+            <p className="text-sm md:text-base">Recognition that drives us to excel</p>
           </div>
-
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="skeleton h-32 rounded-2xl" />
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+              {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-24 md:h-32 rounded-2xl" />)}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
               {awards.map((award: any, i: number) => (
-                <motion.div key={award._id} className="card p-8 flex items-center gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-                  <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <Award className="w-8 h-8 text-accent" />
+                <motion.div key={award._id} className="card p-4 md:p-8 flex items-center gap-4 md:gap-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
+                  <div className="w-10 h-10 md:w-16 md:h-16 bg-accent/20 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <Award className="w-5 h-5 md:w-8 md:h-8 text-accent" />
                   </div>
-                  <div>
-                    <h4 className="mb-1">{award.title}</h4>
-                    <p className="text-sm text-text-muted">{award.platform} • {award.year}</p>
-                    {award.description && <p className="text-xs text-text-muted mt-1">{award.description}</p>}
+                  <div className="min-w-0">
+                    <h4 className="text-sm md:text-xl mb-0.5 md:mb-1 truncate">{award.title}</h4>
+                    <p className="text-xs md:text-sm text-text-muted">{award.platform} &bull; {award.year}</p>
+                    {award.description && <p className="text-[10px] md:text-xs text-text-muted mt-0.5 md:mt-1 truncate">{award.description}</p>}
                   </div>
                 </motion.div>
               ))}
-              {awards.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-text-muted">No awards data available yet</p>
-                </div>
-              )}
+              {awards.length === 0 && <div className="col-span-full text-center py-8 md:py-12"><p className="text-text-muted text-sm md:text-base">No awards data available yet</p></div>}
             </div>
           )}
         </div>
       </section>
 
-      <hr className="divider container-custom" />
+      <hr className="divider container-custom my-0" />
 
-      {/* Customer Reviews */}
-      <section className="section-padding">
+      <section className="py-8 md:py-16">
         <div className="container-custom">
-          <div className="section-title">
-            <h2>Customer Feedback Wall</h2>
-            <p>What our guests are saying</p>
+          <div className="section-title mb-6 md:mb-12">
+            <h2 className="text-2xl md:text-4xl">Customer Feedback Wall</h2>
+            <p className="text-sm md:text-base">What our guests are saying</p>
           </div>
-
-          {/* Platform Filter */}
-          <div className="flex justify-center gap-3 mb-8">
+          <div className="flex justify-center gap-2 md:gap-3 mb-6 md:mb-8 overflow-x-auto pb-2 scrollbar-none">
             {platforms.map(platform => (
-              <button key={platform} onClick={() => setActivePlatform(platform)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activePlatform === platform ? 'bg-primary text-white' : 'bg-background text-text-muted hover:bg-border'}`}>
+              <button key={platform} onClick={() => setActivePlatform(platform)} className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium whitespace-nowrap transition-all ${activePlatform === platform ? 'bg-primary text-white' : 'bg-background text-text-muted hover:bg-border'}`}>
                 {platform === 'all' ? 'All Platforms' : platform}
               </button>
             ))}
           </div>
-
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="skeleton h-40 rounded-2xl" />
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-32 md:h-40 rounded-2xl" />)}
             </div>
           ) : reviews.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-text-muted">No reviews yet</p>
-            </div>
+            <div className="text-center py-8 md:py-12"><p className="text-text-muted text-sm md:text-base">No reviews yet</p></div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {reviews.map((review: any, i: number) => (
-                <motion.div key={review._id} className="card p-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-bold text-sm">{review.reviewerName[0]}</span>
+                <motion.div key={review._id} className="card p-4 md:p-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
+                  <div className="flex items-center justify-between mb-3 md:mb-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-primary font-bold text-xs md:text-sm">{review.reviewerName?.[0] || 'G'}</span>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">{review.reviewerName}</p>
-                        <span className="text-xs text-text-muted">via {review.platform}</span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-xs md:text-sm truncate">{review.reviewerName}</p>
+                        <span className="text-[10px] md:text-xs text-text-muted">via {review.platform}</span>
                       </div>
                     </div>
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: review.rating }).map((_, j) => (
-                        <Star key={j} className="w-4 h-4 fill-accent text-accent" />
-                      ))}
+                    <div className="flex gap-0.5 flex-shrink-0">
+                      {Array.from({ length: review.rating }).map((_, j) => <Star key={j} className="w-3 h-3 md:w-4 md:h-4 fill-accent text-accent" />)}
                     </div>
                   </div>
-                  <p className="text-text-muted text-sm italic">&ldquo;{review.comment}&rdquo;</p>
+                  <p className="text-text-muted text-xs md:text-sm italic">&ldquo;{review.comment}&rdquo;</p>
                 </motion.div>
               ))}
             </div>
