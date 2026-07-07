@@ -1,9 +1,9 @@
 1:"$Sreact.fragment"
-2:I[47257,["/Restaurant/_next/static/chunks/3-5yyeydtj9s9.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js"],"ClientPageRoot"]
-3:I[54601,["/Restaurant/_next/static/chunks/3-5yyeydtj9s9.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js","/Restaurant/_next/static/chunks/3oth42myg752c.js","/Restaurant/_next/static/chunks/2j9fvdw3zay79.js"],"default"]
-6:I[97367,["/Restaurant/_next/static/chunks/3-5yyeydtj9s9.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+2:I[47257,["/Restaurant/_next/static/chunks/2siowcenqhwdk.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js"],"ClientPageRoot"]
+3:I[54601,["/Restaurant/_next/static/chunks/2siowcenqhwdk.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js","/Restaurant/_next/static/chunks/2cl3zjvef7vli.js","/Restaurant/_next/static/chunks/2j9fvdw3zay79.js"],"default"]
+6:I[97367,["/Restaurant/_next/static/chunks/2siowcenqhwdk.js","/Restaurant/_next/static/chunks/4423kqyq086o-.js","/Restaurant/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/Restaurant/_next/static/chunks/3oth42myg752c.js","async":true}],["$","script","script-1",{"src":"/Restaurant/_next/static/chunks/2j9fvdw3zay79.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"h4kZZrypWqCxnTRmPXpNz"}
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/Restaurant/_next/static/chunks/2cl3zjvef7vli.js","async":true}],["$","script","script-1",{"src":"/Restaurant/_next/static/chunks/2j9fvdw3zay79.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"X5hcmF4yAvIfc39r-Y-h4"}
 4:{}
 5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
 8:null
