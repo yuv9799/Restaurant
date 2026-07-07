@@ -1,141 +1,57 @@
 const express = require('express');
 const router = express.Router();
 const Reservation = require('../models/Reservation.model.js');
-const Table = require('../models/Table.model.js');
-const Payment = require('../models/Payment.model.js');
 const sendEmail = require('../utils/sendEmail.js');
 const { authenticate, requireAdmin } = require('../middleware/auth.middleware.js');
 
-// Simulated payment gateway
-function processPayment(amount, method) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        transactionId: 'PRN' + Date.now().toString(36).toUpperCase(),
-        gatewayResponse: { status: 'completed', amount, method }
-      });
-    }, 1000);
-  });
-}
-
-// POST /api/v1/reservations — Create reservation
+// POST /api/v1/reservations — Create reservation (free, no payment)
 router.post('/', async (req, res) => {
   try {
-    const { name, email, phone, date, time, numberOfPeople, seatingPreference, specialRequests, paymentMethod } = req.body;
+    const { name, email, phone, date, time, numberOfPeople, seatingPreference, specialRequests } = req.body;
 
-    // Validate required fields
     if (!name || !email || !phone || !date || !time || !numberOfPeople) {
       return res.status(400).json({ message: 'All required fields must be filled' });
     }
 
-    // Check availability
     const existingCount = await Reservation.countDocuments({
       date: new Date(date),
       time,
       status: { $ne: 'cancelled' }
     });
 
-    if (existingCount >= 10) { // Max 10 reservations per time slot
+    if (existingCount >= 10) {
       return res.status(400).json({ message: 'Sorry, this time slot is fully booked' });
     }
 
     const reservation = new Reservation({
       name, email, phone, date, time, numberOfPeople,
       seatingPreference: seatingPreference || 'indoor',
-      specialRequests: specialRequests || '',
-      paymentMethod: paymentMethod || 'card',
-      paymentStatus: 'pending',
-      amount: 0
+      specialRequests: specialRequests || ''
     });
 
     await reservation.save();
 
-    // Process payment
-    const paymentResult = await processPayment(reservation._id.toString().length, paymentMethod || 'card');
-
-    if (paymentResult.success) {
-      reservation.paymentStatus = 'completed';
-      reservation.transactionId = paymentResult.transactionId;
-      await reservation.save();
-
-      const payment = new Payment({
-        orderId: reservation._id,
-        amount: 0,
-        method: paymentMethod || 'card',
-        status: 'completed',
-        transactionId: paymentResult.transactionId,
-        gatewayResponse: paymentResult.gatewayResponse,
-        paidAt: new Date()
-      });
-      await payment.save();
-    }
-
-    // Also notify restaurant
-    await sendEmail({
+    // Non-blocking email notifications (don't fail if email is not configured)
+    sendEmail({
       to: process.env.RESTAURANT_EMAIL || process.env.EMAIL_USER,
       subject: `New Reservation — ${name}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #602628;">New Reservation Received</h1>
-          <div style="background: #FAF7F2; padding: 20px; border-radius: 12px; margin: 20px 0;">
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone}</p>
-            <p><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p><strong>Time:</strong> ${time}</p>
-            <p><strong>Guests:</strong> ${numberOfPeople}</p>
-            <p><strong>Seating:</strong> ${seatingPreference}</p>
-            ${specialRequests ? `<p><strong>Special Requests:</strong> ${specialRequests}</p>` : ''}
-          </div>
-        </div>
-      `
-    });
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h1 style="color:#602628;">New Reservation Received</h1><div style="background:#FAF7F2;padding:20px;border-radius:12px;margin:20px 0;"><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p><p><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p><p><strong>Time:</strong> ${time}</p><p><strong>Guests:</strong> ${numberOfPeople}</p><p><strong>Seating:</strong> ${seatingPreference || 'indoor'}</p>${specialRequests ? `<p><strong>Special Requests:</strong> ${specialRequests}</p>` : ''}</div></div>`
+    }).catch(() => {});
 
-    // Send confirmation to guest
-    const methodLabels = { card: 'Credit/Debit Card', upi: 'UPI', 'net-banking': 'Net Banking', cash: 'Cash' };
-    await sendEmail({
+    sendEmail({
       to: email,
       subject: 'Reservation Confirmed — ReNorth',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #602628;">Reservation Confirmed! 🎉</h1>
-          <p>Dear ${name},</p>
-          <p>Your table at <strong>ReNorth</strong> has been booked successfully.</p>
-          <div style="background: #FAF7F2; padding: 20px; border-radius: 12px; margin: 20px 0;">
-            <p><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p><strong>Time:</strong> ${time}</p>
-            <p><strong>Guests:</strong> ${numberOfPeople}</p>
-            <p><strong>Seating:</strong> ${seatingPreference}</p>
-            ${specialRequests ? `<p><strong>Special Requests:</strong> ${specialRequests}</p>` : ''}
-            <hr style="border: 1px solid #E8E1D5; margin: 16px 0;" />
-            <p><strong>Payment Method:</strong> ${methodLabels[paymentMethod] || 'Card'}</p>
-            <p><strong>Payment Status:</strong> ${reservation.paymentStatus === 'completed' ? '✅ Paid' : 'Pending'}</p>
-            ${reservation.transactionId ? `<p><strong>Transaction ID:</strong> ${reservation.transactionId}</p>` : ''}
-          </div>
-          <p style="color: #6B6157;">We look forward to serving you!</p>
-          <hr style="border: 1px solid #E8E1D5;" />
-          <p style="color: #6B6157; font-size: 14px;">ReNorth — Where the Mountains Meet the Masala</p>
-        </div>
-      `
-    });
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h1 style="color:#602628;">Reservation Confirmed!</h1><p>Dear ${name},</p><p>Your table at <strong>ReNorth</strong> has been booked successfully.</p><div style="background:#FAF7F2;padding:20px;border-radius:12px;margin:20px 0;"><p><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p><p><strong>Time:</strong> ${time}</p><p><strong>Guests:</strong> ${numberOfPeople}</p></div><p style="color:#6B6157;">We look forward to serving you!</p><hr style="border:1px solid #E8E1D5;"><p style="color:#6B6157;font-size:14px;">ReNorth — Where the Mountains Meet the Masala</p></div>`
+    }).catch(() => {});
 
-    res.status(201).json({
-      reservation,
-      payment: {
-        transactionId: reservation.transactionId,
-        method: reservation.paymentMethod,
-        status: reservation.paymentStatus
-      },
-      message: 'Reservation created successfully'
-    });
+    res.status(201).json({ reservation, message: 'Reservation created successfully' });
   } catch (error) {
     console.error('Create reservation error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET /api/v1/reservations/availability — Check available slots
+// GET /api/v1/reservations/availability
 router.get('/availability', async (req, res) => {
   try {
     const { date } = req.query;
@@ -154,11 +70,7 @@ router.get('/availability', async (req, res) => {
 
     const availableSlots = timeSlots.map(time => {
       const bookingCount = reservations.filter(r => r.time === time).length;
-      return {
-        time,
-        available: bookingCount < 10,
-        bookedCount: bookingCount
-      };
+      return { time, available: bookingCount < 10, bookedCount: bookingCount };
     });
 
     res.json({ slots: availableSlots });
@@ -168,11 +80,10 @@ router.get('/availability', async (req, res) => {
   }
 });
 
-// GET /api/v1/reservations/my — Get user's reservations
+// GET /api/v1/reservations/my
 router.get('/my', authenticate, async (req, res) => {
   try {
-    const reservations = await Reservation.find({ userId: req.user._id })
-      .sort({ date: -1 });
+    const reservations = await Reservation.find({ userId: req.user._id }).sort({ date: -1 });
     res.json({ reservations });
   } catch (error) {
     console.error('Get my reservations error:', error);
@@ -180,23 +91,16 @@ router.get('/my', authenticate, async (req, res) => {
   }
 });
 
-// DELETE /api/v1/reservations/:id — Cancel reservation
+// DELETE /api/v1/reservations/:id
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const reservation = await Reservation.findById(req.params.id);
-
-    if (!reservation) {
-      return res.status(404).json({ message: 'Reservation not found' });
-    }
-
-    // Allow cancellation only if owned by user or admin
+    if (!reservation) return res.status(404).json({ message: 'Reservation not found' });
     if (reservation.userId?.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' });
     }
-
     reservation.status = 'cancelled';
     await reservation.save();
-
     res.json({ message: 'Reservation cancelled successfully' });
   } catch (error) {
     console.error('Cancel reservation error:', error);
@@ -204,7 +108,7 @@ router.delete('/:id', authenticate, async (req, res) => {
   }
 });
 
-// GET /api/v1/reservations/all — Get all reservations (admin)
+// GET /api/v1/reservations/all (admin)
 router.get('/all', authenticate, requireAdmin, async (req, res) => {
   try {
     const reservations = await Reservation.find().sort({ date: -1 });
