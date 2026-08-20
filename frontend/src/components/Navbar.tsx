@@ -33,8 +33,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-[9999] px-4 pt-4">
       <div className={`max-w-7xl mx-auto transition-all duration-300 rounded-2xl ${scrolled
-          ? 'glass shadow-sm'
-          : 'bg-black/30 backdrop-blur-sm'
+        ? 'glass shadow-sm'
+        : 'bg-black/30 backdrop-blur-sm'
         }`}>
         <div className="flex items-center justify-between px-6 h-16">
           <Link href="/" className="flex items-center gap-2.5">
@@ -52,8 +52,8 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pathname === link.href
-                    ? scrolled ? 'text-primary bg-primary/5' : 'text-white bg-white/10'
-                    : scrolled ? 'text-text-muted hover:text-primary hover:bg-primary/5' : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? scrolled ? 'text-primary bg-primary/5' : 'text-white bg-white/10'
+                  : scrolled ? 'text-text-muted hover:text-primary hover:bg-primary/5' : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
               >
                 {link.label}
@@ -65,8 +65,8 @@ export default function Navbar() {
             <Link
               href="/reservations"
               className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${scrolled
-                  ? 'bg-primary text-white hover:bg-primary/90'
-                  : 'bg-white text-primary hover:bg-white/90'
+                ? 'bg-primary text-white hover:bg-primary/90'
+                : 'bg-white text-primary hover:bg-white/90'
                 }`}
             >
               <CalendarDays className="w-4 h-4" />
