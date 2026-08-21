@@ -9,6 +9,8 @@ import { menuApi } from '@/lib/api';
 
 const categories = [
   { id: 'all', label: 'All' },
+  { id: 'veg', label: 'Veg' },
+  { id: 'non-veg', label: 'Non Veg' },
   { id: 'starters', label: 'Starters' },
   { id: 'mains', label: 'Mains' },
   { id: 'breads', label: 'Breads' },
@@ -174,13 +176,20 @@ export default function MenuPage() {
   const fetchDishes = async () => {
     setLoading(true);
     try {
+      // For veg/non-veg, fetch all dishes and filter client-side
       const params: any = {};
-      if (selectedCategory !== 'all') params.category = selectedCategory;
+      if (selectedCategory !== 'all' && selectedCategory !== 'veg' && selectedCategory !== 'non-veg') {
+        params.category = selectedCategory;
+      }
       if (searchQuery) params.search = searchQuery;
       const res = await menuApi.getAll(params);
       const fetched = res.data.dishes;
       if (fetched && fetched.length > 0) {
-        setDishes(fetched);
+        let filtered = fetched;
+        // Apply veg/non-veg client-side filter
+        if (selectedCategory === 'veg') filtered = filtered.filter((d: any) => d.isVeg === true);
+        if (selectedCategory === 'non-veg') filtered = filtered.filter((d: any) => d.isVeg === false);
+        setDishes(filtered);
       } else {
         applyFallback();
       }
@@ -191,7 +200,13 @@ export default function MenuPage() {
 
   const applyFallback = () => {
     let filtered = fallbackDishes;
-    if (selectedCategory !== 'all') filtered = filtered.filter(d => d.category === selectedCategory);
+    if (selectedCategory === 'veg') {
+      filtered = filtered.filter(d => d.isVeg === true);
+    } else if (selectedCategory === 'non-veg') {
+      filtered = filtered.filter(d => d.isVeg === false);
+    } else if (selectedCategory !== 'all') {
+      filtered = filtered.filter(d => d.category === selectedCategory);
+    }
     if (searchQuery) filtered = filtered.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
     setDishes(filtered);
   };
