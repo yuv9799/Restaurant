@@ -1,16 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Search, Plus, Minus, X, ShoppingCart } from 'lucide-react';
+import { Search, Plus, Minus, X, ShoppingCart, Leaf, Filter, RotateCcw } from 'lucide-react';
 import MenuCard from '@/components/MenuCard';
 import { menuApi } from '@/lib/api';
 
 const categories = [
   { id: 'all', label: 'All' },
-  { id: 'veg', label: 'Veg' },
-  { id: 'non-veg', label: 'Non Veg' },
   { id: 'starters', label: 'Starters' },
   { id: 'mains', label: 'Mains' },
   { id: 'breads', label: 'Breads' },
@@ -161,6 +159,7 @@ export default function MenuPage() {
   const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [vegetarianOnly, setVegetarianOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -169,26 +168,21 @@ export default function MenuPage() {
     fetchDishes();
     const saved = localStorage.getItem('rn_cart');
     if (saved) try { setCart(JSON.parse(saved)); } catch { }
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, vegetarianOnly]);
 
   useEffect(() => { localStorage.setItem('rn_cart', JSON.stringify(cart)); }, [cart]);
 
   const fetchDishes = async () => {
     setLoading(true);
     try {
-      // For veg/non-veg, fetch all dishes and filter client-side
       const params: any = {};
-      if (selectedCategory !== 'all' && selectedCategory !== 'veg' && selectedCategory !== 'non-veg') {
-        params.category = selectedCategory;
-      }
+      if (selectedCategory !== 'all') params.category = selectedCategory;
       if (searchQuery) params.search = searchQuery;
       const res = await menuApi.getAll(params);
       const fetched = res.data.dishes;
       if (fetched && fetched.length > 0) {
         let filtered = fetched;
-        // Apply veg/non-veg client-side filter
-        if (selectedCategory === 'veg') filtered = filtered.filter((d: any) => d.isVeg === true);
-        if (selectedCategory === 'non-veg') filtered = filtered.filter((d: any) => d.isVeg === false);
+        if (vegetarianOnly) filtered = filtered.filter((d: any) => d.isVeg === true);
         setDishes(filtered);
       } else {
         applyFallback();
@@ -200,15 +194,19 @@ export default function MenuPage() {
 
   const applyFallback = () => {
     let filtered = fallbackDishes;
-    if (selectedCategory === 'veg') {
-      filtered = filtered.filter(d => d.isVeg === true);
-    } else if (selectedCategory === 'non-veg') {
-      filtered = filtered.filter(d => d.isVeg === false);
-    } else if (selectedCategory !== 'all') {
-      filtered = filtered.filter(d => d.category === selectedCategory);
-    }
+    if (selectedCategory !== 'all') filtered = filtered.filter(d => d.category === selectedCategory);
+    if (vegetarianOnly) filtered = filtered.filter(d => d.isVeg === true);
     if (searchQuery) filtered = filtered.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
     setDishes(filtered);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = vegetarianOnly || selectedCategory !== 'all' || searchQuery !== '';
+
+  const clearFilters = () => {
+    setVegetarianOnly(false);
+    setSelectedCategory('all');
+    setSearchQuery('');
   };
 
   const addToCart = (dish: any) => {
@@ -242,7 +240,8 @@ export default function MenuPage() {
             <p className="text-text-muted text-sm">Authentic North Indian cuisine crafted with tradition and passion</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto">
+          {/* Search */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 max-w-2xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
               <input type="text" placeholder="Search menu..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="input-field pl-10 text-sm" />
@@ -250,6 +249,31 @@ export default function MenuPage() {
             </div>
           </div>
 
+          {/* Dietary Preference Toggle */}
+          <div className="max-w-2xl mx-auto mb-6">
+            <div className="glass-card p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${vegetarianOnly ? 'bg-success/10' : 'bg-background'}`}>
+                  <Leaf className={`w-5 h-5 ${vegetarianOnly ? 'text-success' : 'text-text-muted'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Vegetarian Only</p>
+                  <p className="text-xs text-text-muted">{vegetarianOnly ? 'Showing only vegetarian dishes' : 'Showing all dishes'}</p>
+                </div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={vegetarianOnly}
+                aria-label="Vegetarian Only"
+                onClick={() => setVegetarianOnly(!vegetarianOnly)}
+                className={`relative w-14 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 ${vegetarianOnly ? 'bg-success' : 'bg-border'}`}
+              >
+                <span className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-all ${vegetarianOnly ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Categories */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none justify-center flex-wrap">
             {categories.map(cat => (
               <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
@@ -259,11 +283,45 @@ export default function MenuPage() {
               </button>
             ))}
           </div>
+
+          {/* Active Filters + Clear */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                {vegetarianOnly && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
+                    <Leaf className="w-3 h-3" /> Vegetarian Only
+                  </span>
+                )}
+                {selectedCategory !== 'all' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                    {categories.find(c => c.id === selectedCategory)?.label}
+                  </span>
+                )}
+                {searchQuery && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium">
+                    Search: {searchQuery}
+                  </span>
+                )}
+              </div>
+              <button onClick={clearFilters} className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-error transition-colors">
+                <RotateCcw className="w-3 h-3" /> Clear Filters
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       <section className="pb-20">
         <div className="container-custom">
+          {/* Result Count */}
+          {!loading && dishes.length > 0 && (
+            <p className="text-center text-xs text-text-muted mb-6">
+              {dishes.length} {vegetarianOnly ? 'vegetarian ' : ''}dish{dishes.length !== 1 ? 'es' : ''}
+              {selectedCategory !== 'all' ? ` in ${categories.find(c => c.id === selectedCategory)?.label}` : ''}
+            </p>
+          )}
+
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -271,19 +329,45 @@ export default function MenuPage() {
               ))}
             </div>
           ) : dishes.length === 0 ? (
-            <div className="text-center py-20"><p className="text-text-muted">No dishes found</p></div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {dishes.map((dish: any) => (
-                <div key={dish._id} className="relative group">
-                  <MenuCard name={dish.name} description={dish.description} price={dish.price} isVeg={dish.isVeg} isChefSpecial={dish.isChefSpecial} isBestSeller={dish.isBestSeller} />
-                  <button onClick={() => addToCart(dish)}
-                    className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-white border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-white hover:border-primary shadow-sm">
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
+            <div className="text-center py-20">
+              <div className="w-16 h-16 rounded-2xl bg-background flex items-center justify-center mx-auto mb-4">
+                <Leaf className="w-8 h-8 text-text-muted" />
+              </div>
+              <h3 className="mb-2">{vegetarianOnly ? 'No Vegetarian Dishes Found' : 'No Dishes Found'}</h3>
+              <p className="text-text-muted text-sm mb-6">
+                {vegetarianOnly
+                  ? "We couldn't find a vegetarian dish matching your selection."
+                  : "We couldn't find any dishes matching your selection."}
+              </p>
+              <button onClick={clearFilters} className="btn-secondary text-sm">
+                <RotateCcw className="w-4 h-4" /> Clear Filters
+              </button>
             </div>
+          ) : (
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+              >
+                {dishes.map((dish: any) => (
+                  <motion.div
+                    key={dish._id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="relative group"
+                  >
+                    <MenuCard name={dish.name} description={dish.description} price={dish.price} isVeg={dish.isVeg} isChefSpecial={dish.isChefSpecial} isBestSeller={dish.isBestSeller} />
+                    <button onClick={() => addToCart(dish)}
+                      className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-white border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-white hover:border-primary shadow-sm">
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           )}
         </div>
       </section>
