@@ -48,6 +48,8 @@ interface GuestSelections {
   drink: string;
 }
 
+const createGuestSelection = (): GuestSelections => ({ starters: [], mains: [], desserts: [], drink: '' });
+
 interface ExperienceState {
   step: number;
   guestType: string;
@@ -55,8 +57,7 @@ interface ExperienceState {
   date: string;
   time: string;
   altTime: string;
-  guest1: GuestSelections;
-  guest2: GuestSelections;
+  guestSelections: GuestSelections[];
   shared: { starters: string[]; mains: string[]; desserts: string[] };
   dietary: string[];
   allergies: string;
@@ -81,6 +82,8 @@ interface ExperienceState {
   };
   confirmed: boolean;
   bookingRef: string;
+  guest1: GuestSelections;
+  guest2: GuestSelections;
 }
 
 const initialState: ExperienceState = {
@@ -90,8 +93,7 @@ const initialState: ExperienceState = {
   date: '',
   time: '',
   altTime: '',
-  guest1: { starters: [], mains: [], desserts: [], drink: '' },
-  guest2: { starters: [], mains: [], desserts: [], drink: '' },
+  guestSelections: [createGuestSelection(), createGuestSelection()],
   shared: { starters: [], mains: [], desserts: [] },
   dietary: [],
   allergies: '',
@@ -116,10 +118,76 @@ const initialState: ExperienceState = {
   },
   confirmed: false,
   bookingRef: '',
+  guest1: createGuestSelection(),
+  guest2: createGuestSelection(),
 };
 
 // ---------- Helper: find item by id ----------
 const findItem = (list: any[], id: string) => list.find(i => i.id === id);
+
+type DishCategory = 'starters' | 'mains' | 'desserts';
+
+function GuestMenuCard({
+  guest,
+  guestIndex,
+  onToggle,
+}: {
+  guest: GuestSelections;
+  guestIndex: number;
+  onToggle: (category: DishCategory, id: string) => void;
+}) {
+  const menus: { category: DishCategory; label: string; dishes: typeof starters }[] = [
+    { category: 'starters', label: 'Starters', dishes: starters },
+    { category: 'mains', label: 'Main Course', dishes: mains },
+    { category: 'desserts', label: 'Desserts', dishes: desserts },
+  ];
+
+  return (
+    <div className="glass-card p-6 mb-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">
+          <User className="w-5 h-5" />
+        </div>
+        <div>
+          <h5 className="font-semibold text-sm">Guest {guestIndex + 1}</h5>
+          <p className="text-xs text-text-muted">What would you like?</p>
+        </div>
+      </div>
+      {menus.map(menu => (
+        <div key={menu.category} className="mb-5 last:mb-0">
+          <h6 className="text-xs font-semibold uppercase tracking-wider text-accent mb-3">{menu.label}</h6>
+          <div className="space-y-2">
+            {menu.dishes.map(dish => {
+              const selected = guest[menu.category].includes(dish.id);
+              return (
+                <div key={dish.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                  selected ? 'border-primary bg-primary/5' : 'border-border hover:border-accent/50'
+                }`}>
+                  <div className="flex-1 min-w-0 mr-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-sm">{dish.name}</p>
+                      {dish.tags.map(tag => <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-background text-text-muted">{tag}</span>)}
+                    </div>
+                    <p className="text-xs text-text-muted mt-0.5">{dish.description}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-semibold text-primary">₹{dish.price.toLocaleString('en-IN')}</span>
+                    <button
+                      onClick={() => onToggle(menu.category, dish.id)}
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${selected ? 'bg-primary text-white' : 'bg-background text-text-muted hover:bg-primary hover:text-white'}`}
+                    >
+                      {selected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // ---------- Main Component ----------
 export default function PrivateDiningPage() {
@@ -134,7 +202,13 @@ export default function PrivateDiningPage() {
   useEffect(() => {
     const saved = sessionStorage.getItem('rn_private_dining');
     if (saved) {
-      try { setState(JSON.parse(saved)); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(saved) as Partial<ExperienceState> & { guest1?: GuestSelections; guest2?: GuestSelections };
+        const legacySelections = [parsed.guest1, parsed.guest2].filter((guest): guest is GuestSelections => Boolean(guest));
+        const guestSelections = parsed.guestSelections?.length ? parsed.guestSelections : legacySelections;
+        const selections = guestSelections.length ? guestSelections : initialState.guestSelections;
+        setState({ ...initialState, ...parsed, guestSelections: selections, guest1: selections[0], guest2: selections[1] || createGuestSelection() });
+      } catch { /* ignore */ }
     }
   }, []);
 
@@ -146,26 +220,18 @@ export default function PrivateDiningPage() {
   const pricing = useMemo(() => {
     let total = BASE_EXPERIENCE_PRICE;
     const breakdown: { label: string; amount: number }[] = [
-      { label: 'Private Dining Experience for Two', amount: BASE_EXPERIENCE_PRICE },
+      { label: `Private Dining Experience for ${state.guestSelections.length}`, amount: BASE_EXPERIENCE_PRICE },
     ];
 
-    // Guest 1 dishes
-    const g1Items = [
-      ...state.guest1.starters.map(id => findItem(starters, id)),
-      ...state.guest1.mains.map(id => findItem(mains, id)),
-      ...state.guest1.desserts.map(id => findItem(desserts, id)),
-    ].filter(Boolean);
-    const g1Total = g1Items.reduce((s, i) => s + (i?.price || 0), 0);
-    if (g1Total > 0) { total += g1Total; breakdown.push({ label: 'Guest 1 Menu', amount: g1Total }); }
-
-    // Guest 2 dishes
-    const g2Items = [
-      ...state.guest2.starters.map(id => findItem(starters, id)),
-      ...state.guest2.mains.map(id => findItem(mains, id)),
-      ...state.guest2.desserts.map(id => findItem(desserts, id)),
-    ].filter(Boolean);
-    const g2Total = g2Items.reduce((s, i) => s + (i?.price || 0), 0);
-    if (g2Total > 0) { total += g2Total; breakdown.push({ label: 'Guest 2 Menu', amount: g2Total }); }
+    state.guestSelections.forEach((guest, index) => {
+      const guestItems = [
+        ...guest.starters.map(id => findItem(starters, id)),
+        ...guest.mains.map(id => findItem(mains, id)),
+        ...guest.desserts.map(id => findItem(desserts, id)),
+      ].filter(Boolean);
+      const guestTotal = guestItems.reduce((sum, item) => sum + (item?.price || 0), 0);
+      if (guestTotal > 0) { total += guestTotal; breakdown.push({ label: `Guest ${index + 1} Menu`, amount: guestTotal }); }
+    });
 
     // Shared dishes
     const sharedItems = [
@@ -217,10 +283,9 @@ export default function PrivateDiningPage() {
       return;
     }
     if (state.step === 3) {
-      const g1Count = state.guest1.starters.length + state.guest1.mains.length + state.guest1.desserts.length;
-      const g2Count = state.guest2.starters.length + state.guest2.mains.length + state.guest2.desserts.length;
+      const guestCount = state.guestSelections.reduce((sum, guest) => sum + guest.starters.length + guest.mains.length + guest.desserts.length, 0);
       const sharedCount = state.shared.starters.length + state.shared.mains.length + state.shared.desserts.length;
-      if (g1Count === 0 && g2Count === 0 && sharedCount === 0) {
+      if (guestCount === 0 && sharedCount === 0) {
         setError('Please select at least one dish for your menu.');
         return;
       }
@@ -247,17 +312,36 @@ export default function PrivateDiningPage() {
   const toggleInArray = (arr: string[], id: string) =>
     arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
 
-  const toggleGuest1 = (category: 'starters' | 'mains' | 'desserts', id: string) => {
+  const toggleGuest = (guestIndex: number, category: DishCategory, id: string) => {
     setState(s => ({
       ...s,
-      guest1: { ...s.guest1, [category]: toggleInArray(s.guest1[category], id) },
+      guestSelections: s.guestSelections.map((guest, index) => index === guestIndex
+        ? { ...guest, [category]: toggleInArray(guest[category], id) }
+        : guest),
+      ...(guestIndex === 0 ? { guest1: { ...s.guest1, [category]: toggleInArray(s.guest1[category], id) } } : {}),
+      ...(guestIndex === 1 ? { guest2: { ...s.guest2, [category]: toggleInArray(s.guest2[category], id) } } : {}),
     }));
   };
 
-  const toggleGuest2 = (category: 'starters' | 'mains' | 'desserts', id: string) => {
+  const toggleGuest1 = (category: DishCategory, id: string) => toggleGuest(0, category, id);
+  const toggleGuest2 = (category: DishCategory, id: string) => toggleGuest(1, category, id);
+
+  const setGuestDrink = (guestIndex: number, drink: string) => {
     setState(s => ({
       ...s,
-      guest2: { ...s.guest2, [category]: toggleInArray(s.guest2[category], id) },
+      guestSelections: s.guestSelections.map((guest, index) => index === guestIndex ? { ...guest, drink } : guest),
+      ...(guestIndex === 0 ? { guest1: { ...s.guest1, drink } } : {}),
+      ...(guestIndex === 1 ? { guest2: { ...s.guest2, drink } } : {}),
+    }));
+  };
+
+  const setGuestCount = (guestCount: number, guestType: string) => {
+    setState(s => ({
+      ...s,
+      guestType,
+      guestSelections: Array.from({ length: guestCount }, (_, index) => s.guestSelections[index] || createGuestSelection()),
+      guest1: s.guestSelections[0] || createGuestSelection(),
+      guest2: s.guestSelections[1] || createGuestSelection(),
     }));
   };
 
@@ -590,7 +674,7 @@ export default function PrivateDiningPage() {
                           {guestOptions.map(opt => (
                             <button
                               key={opt.id}
-                              onClick={() => setState(s => ({ ...s, guestType: opt.id }))}
+                              onClick={() => setGuestCount(opt.guests, opt.id)}
                               className={`card p-6 text-center transition-all ${
                                 state.guestType === opt.id ? 'border-primary ring-2 ring-primary/20' : 'hover:border-accent'
                               }`}
@@ -838,6 +922,7 @@ export default function PrivateDiningPage() {
                         <h4 className="text-lg font-semibold mb-2">Your Menu</h4>
                         <p className="text-text-muted text-sm mb-6">Choose dishes for each of you, or share them together.</p>
 
+                        {state.guestSelections.length === 2 && (<>
                         {/* Guest 1 */}
                         <div className="glass-card p-6 mb-6">
                           <div className="flex items-center gap-3 mb-4">
@@ -1062,6 +1147,17 @@ export default function PrivateDiningPage() {
                           </div>
                         </div>
 
+                        </>)}
+
+                        {state.guestSelections.length > 2 && state.guestSelections.map((guest, index) => (
+                          <GuestMenuCard
+                            key={index + 1}
+                            guest={guest}
+                            guestIndex={index}
+                            onToggle={(category, id) => toggleGuest(index, category, id)}
+                          />
+                        ))}
+
                         {/* Shared Dishes */}
                         <div className="glass-card p-6 border-accent/30">
                           <div className="flex items-center gap-3 mb-4">
@@ -1216,36 +1312,24 @@ export default function PrivateDiningPage() {
                       {/* Individual Drink Preferences */}
                       <div className="glass-card p-6">
                         <h4 className="text-sm font-semibold mb-1 flex items-center gap-2"><Coffee className="w-4 h-4 text-accent" /> Individual Drink Preferences</h4>
-                        <p className="text-xs text-text-muted mb-4">Select a drink for each of you</p>
+                        <p className="text-xs text-text-muted mb-4">Select a drink for each guest</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center gap-1.5">
-                              <span className="w-5 h-5 rounded-md bg-primary text-white flex items-center justify-center text-[10px] font-bold">1</span>
-                              Guest 1
-                            </label>
-                            <select
-                              className="input-field text-sm"
-                              value={state.guest1.drink}
-                              onChange={e => setState(s => ({ ...s, guest1: { ...s.guest1, drink: e.target.value } }))}
-                            >
-                              <option value="">Select a drink</option>
-                              {welcomeDrinks.map(d => <option key={d.id} value={d.id}>{d.name} — ₹{d.price}</option>)}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center gap-1.5">
-                              <span className="w-5 h-5 rounded-md bg-accent text-white flex items-center justify-center text-[10px] font-bold">2</span>
-                              Guest 2
-                            </label>
-                            <select
-                              className="input-field text-sm"
-                              value={state.guest2.drink}
-                              onChange={e => setState(s => ({ ...s, guest2: { ...s.guest2, drink: e.target.value } }))}
-                            >
-                              <option value="">Select a drink</option>
-                              {welcomeDrinks.map(d => <option key={d.id} value={d.id}>{d.name} — ₹{d.price}</option>)}
-                            </select>
-                          </div>
+                          {state.guestSelections.map((guest, index) => (
+                            <div key={index}>
+                              <label className="block text-sm font-medium mb-2 flex items-center gap-1.5">
+                                <span className={`w-5 h-5 rounded-md ${index % 2 === 0 ? 'bg-primary' : 'bg-accent'} text-white flex items-center justify-center text-[10px] font-bold`}>{index + 1}</span>
+                                Guest {index + 1}
+                              </label>
+                              <select
+                                className="input-field text-sm"
+                                value={guest.drink}
+                                onChange={e => setGuestDrink(index, e.target.value)}
+                              >
+                                <option value="">Select a drink</option>
+                                {welcomeDrinks.map(d => <option key={d.id} value={d.id}>{d.name} — ₹{d.price}</option>)}
+                              </select>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -1812,33 +1896,21 @@ export default function PrivateDiningPage() {
                       </div>
                     )}
 
-                    {/* Guest 1 */}
-                    <div className="border-t border-border pt-3">
-                      <p className="text-xs font-semibold text-primary mb-1.5">Guest 1</p>
-                      <div className="flex flex-wrap gap-1">
-                        {[...state.guest1.starters, ...state.guest1.mains, ...state.guest1.desserts].map(id => {
-                          const item = findItem([...starters, ...mains, ...desserts], id);
-                          return item ? <span key={id} className="text-[10px] px-2 py-0.5 rounded bg-primary/5 text-primary">{item.name}</span> : null;
-                        })}
-                        {state.guest1.starters.length + state.guest1.mains.length + state.guest1.desserts.length === 0 && (
-                          <span className="text-[10px] text-text-muted">No dishes</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Guest 2 */}
-                    <div>
-                      <p className="text-xs font-semibold text-accent mb-1.5">Guest 2</p>
-                      <div className="flex flex-wrap gap-1">
-                        {[...state.guest2.starters, ...state.guest2.mains, ...state.guest2.desserts].map(id => {
-                          const item = findItem([...starters, ...mains, ...desserts], id);
-                          return item ? <span key={id} className="text-[10px] px-2 py-0.5 rounded bg-accent/5 text-accent">{item.name}</span> : null;
-                        })}
-                        {state.guest2.starters.length + state.guest2.mains.length + state.guest2.desserts.length === 0 && (
-                          <span className="text-[10px] text-text-muted">No dishes</span>
-                        )}
-                      </div>
-                    </div>
+                    {state.guestSelections.map((guest, index) => {
+                      const dishes = [...guest.starters, ...guest.mains, ...guest.desserts];
+                      return (
+                        <div key={index} className={index === 0 ? 'border-t border-border pt-3' : ''}>
+                          <p className={`text-xs font-semibold mb-1.5 ${index % 2 === 0 ? 'text-primary' : 'text-accent'}`}>Guest {index + 1}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {dishes.map(id => {
+                              const item = findItem([...starters, ...mains, ...desserts], id);
+                              return item ? <span key={id} className={`text-[10px] px-2 py-0.5 rounded ${index % 2 === 0 ? 'bg-primary/5 text-primary' : 'bg-accent/5 text-accent'}`}>{item.name}</span> : null;
+                            })}
+                            {dishes.length === 0 && <span className="text-[10px] text-text-muted">No dishes</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
 
                     {/* Shared */}
                     {[...state.shared.starters, ...state.shared.mains, ...state.shared.desserts].length > 0 && (
